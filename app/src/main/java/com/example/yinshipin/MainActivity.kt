@@ -5,16 +5,20 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.yinshipin.activity.CameraPreviewActivity
+import com.example.yinshipin.activity.VideoExtractActivity
 import com.permissionx.guolindev.PermissionX
 import kotlinx.android.synthetic.main.activity_main.*
-import java.util.jar.Manifest
 
 class MainActivity : AppCompatActivity() {
     private var mDataList = mutableListOf<ItemDataBean>()
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        PermissionX.init(this).permissions(android.Manifest.permission.CAMERA)
+        PermissionX.init(this).permissions(
+            android.Manifest.permission.CAMERA
+            , android.Manifest.permission.WRITE_EXTERNAL_STORAGE,
+            android.Manifest.permission.READ_EXTERNAL_STORAGE
+        )
             .request { allGranted, grantedList, deniedList ->
                 run {
                     if (deniedList.isNotEmpty()) {
@@ -32,11 +36,15 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun initDataList() {
-        mDataList.add(
-            ItemDataBean(
+        mDataList.addAll(
+            mutableListOf(ItemDataBean(
                 "CameraPreview",
                 CameraPreviewActivity::class.java, ColorGenerator.getInstance().getColor()
-            )
+            ),ItemDataBean(
+                "VideoExtract",
+                VideoExtractActivity::class.java, ColorGenerator.getInstance().getColor()
+            ))
+
         );
     }
 }
