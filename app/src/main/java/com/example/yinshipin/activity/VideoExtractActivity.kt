@@ -13,6 +13,11 @@ import java.io.File
 import java.io.FileOutputStream
 import java.nio.ByteBuffer
 
+
+/**
+ * 截流法，根据现有文件的封装格式，读取视频文件的流，仅仅是读取流，而不做任何解码处理，
+ * 选取我们需要的流数据加入到muxter中
+ */
 class VideoExtractActivity : AppCompatActivity() {
     val VIDEO_PATH = "/sdcard/test.mp4"
     val VIDEO_OUTPUT_PATH = "/sdcard/output.mp4"
@@ -141,6 +146,7 @@ class VideoExtractActivity : AppCompatActivity() {
                     bufferInfo.flags = flags
 
                     val sampleTrackIndex = mediaExtractor.sampleTrackIndex
+                    //视频和音频都需要知道第一个包的起始时间，后面的时间都需要减去这个起始时间
                     if (sampleTrackIndex == videoTrackIndex) {
                         if (!firstVideoPacket) {
                             firstVideoPacket = true
@@ -148,6 +154,7 @@ class VideoExtractActivity : AppCompatActivity() {
                         }
                         bufferInfo.presentationTimeUs =
                             bufferInfo.presentationTimeUs - startVideoPresentationTime
+                        //写入视频数据
                         muxer.writeSampleData(videoDstTrack, dstBuf, bufferInfo)
                     } else if (sampleTrackIndex == audioTrackIndex) {
                         if (!firstAudioPacket) {
@@ -156,6 +163,7 @@ class VideoExtractActivity : AppCompatActivity() {
                         }
                         bufferInfo.presentationTimeUs =
                             bufferInfo.presentationTimeUs - startAudioPresentationTime
+                        //写入音频数据
                         muxer.writeSampleData(audioDstTrack, dstBuf, bufferInfo)
                     }
                     mediaExtractor.advance()
