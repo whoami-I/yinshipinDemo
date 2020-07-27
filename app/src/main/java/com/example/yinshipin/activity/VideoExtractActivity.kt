@@ -67,6 +67,7 @@ class VideoExtractActivity : AppCompatActivity() {
             val startTime = 2000000L
             val endTime = 20000000L
             var startPresentationTime = 0L
+            var startVideoPresentationTime = 0L
             val mediaMetadataRetriever = MediaMetadataRetriever()
             var bufferSize = -1
             var videoDstTrack = -1
@@ -74,7 +75,7 @@ class VideoExtractActivity : AppCompatActivity() {
             if (videoTrackIndex != -1) {
                 mediaExtractor.selectTrack(videoTrackIndex)
                 mediaExtractor.seekTo(startTime, MediaExtractor.SEEK_TO_CLOSEST_SYNC)
-                startPresentationTime = mediaExtractor.sampleTime
+                startVideoPresentationTime = mediaExtractor.sampleTime
                 val trackFormat = mediaExtractor.getTrackFormat(videoTrackIndex)
 //            fileOutputStream.close()
                 videoDstTrack = muxer.addTrack(trackFormat)
@@ -112,6 +113,8 @@ class VideoExtractActivity : AppCompatActivity() {
             } else {
                 Log.d("TAG", "no audio in $VIDEO_PATH")
             }
+            //seek again when add audio and add video finish
+            mediaExtractor.seekTo(startVideoPresentationTime, MediaExtractor.SEEK_TO_CLOSEST_SYNC)
 
 
             val bufferInfo = MediaCodec.BufferInfo()
@@ -119,7 +122,7 @@ class VideoExtractActivity : AppCompatActivity() {
                 bufferSize = 1024 * 1024
             }
             val dstBuf = ByteBuffer.allocate(bufferSize)
-            var startVideoPresentationTime = 0L
+
             var startAudioPresentationTime = 0L
             var firstVideoPacket = false
             var firstAudioPacket = false
@@ -150,7 +153,7 @@ class VideoExtractActivity : AppCompatActivity() {
                     if (sampleTrackIndex == videoTrackIndex) {
                         if (!firstVideoPacket) {
                             firstVideoPacket = true
-                            startVideoPresentationTime = bufferInfo.presentationTimeUs
+                            //startVideoPresentationTime = bufferInfo.presentationTimeUs
                         }
                         bufferInfo.presentationTimeUs =
                             bufferInfo.presentationTimeUs - startVideoPresentationTime
