@@ -6,6 +6,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.yinshipin.activity.CameraPreviewActivity
 import com.example.yinshipin.activity.VideoExtractActivity
+import com.example.yinshipin.activity.videodecode.VideoDecodeActivity
 import com.permissionx.guolindev.PermissionX
 import kotlinx.android.synthetic.main.activity_main.*
 
@@ -43,8 +44,10 @@ class MainActivity : AppCompatActivity() {
             ),ItemDataBean(
                 "VideoExtract",
                 VideoExtractActivity::class.java, ColorGenerator.getInstance().getColor()
+            ),ItemDataBean(
+                "VideoDecode",
+                VideoDecodeActivity::class.java, ColorGenerator.getInstance().getColor()
             ))
-
-        );
+        )
     }
 }
