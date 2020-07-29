@@ -22,6 +22,7 @@
         </activity>
         <activity android:name=".activity.CameraPreviewActivity" />
         <activity android:name=".activity.VideoExtractActivity" />
+        <activity android:name=".activity.videodecode.VideoDecodeActivity" />
     </application>
 
 </manifest>
