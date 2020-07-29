@@ -47,7 +47,7 @@ class VideoDecodeActivity : AppCompatActivity() {
     }
 
     var startTime = 2000000L
-    val endTime = 20000000L
+    val endTime = 8000000L
     var mEncodePresentTimeUs: Long = 0
     var mPresentationTimeUs1: Long = 0
     var videoOutputIndex = -1
@@ -173,15 +173,15 @@ class VideoDecodeActivity : AppCompatActivity() {
             var videoEncoder: MediaCodec = MediaCodec.createEncoderByType(MIME_VIDEO_TYPE)
             videoEncoder.configure(mediaFormat, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE)
             var videoDecoder = MediaCodec.createDecoderByType(mime as String)
+            var eglHelper: EglHelper? = null
             eglHandler.post {
                 val encoderSurface = videoEncoder.createInputSurface()
                 videoEncoder.start()
                 var glHelper: GLHelper? = null
-                var eglHelper: EglHelper? = null
                 try {
                     eglHelper = EglHelper(encoderSurface)
-                    eglHelper.initEnv()
-                    eglHelper.createSurface()
+                    eglHelper!!.initEnv()
+                    eglHelper!!.createSurface()
                     glHelper = GLHelper()
                     glHelper.initFramebuffer(cropWidth, cropHeight)
                 } catch (e: java.lang.Exception) {
@@ -192,7 +192,7 @@ class VideoDecodeActivity : AppCompatActivity() {
                 val surfaceTexture = glHelper.getSurfaceTexture(cropWidth, cropHeight)
                 surfaceTexture.setDefaultBufferSize(cropWidth, cropHeight)
                 surfaceTexture.setOnFrameAvailableListener {
-                    eglHelper.setPresentationTimeNs(mEncodePresentTimeUs)
+                    eglHelper!!.setPresentationTimeNs(mEncodePresentTimeUs)
                     //when new data, the gl will be draw and then put into the video encode queue buffer
                     Log.i(
                         TAG,
@@ -200,8 +200,8 @@ class VideoDecodeActivity : AppCompatActivity() {
                     );
                     if (mPresentationTimeUs1 in startTime..endTime) {
                         glHelper.drawFrameBuffer()
-                        Log.d(TAG, "mFramebuffer.drawFrameBuffer");
-                        eglHelper.swap()
+                        //Log.d(TAG, "mFramebuffer.drawFrameBuffer");
+                        eglHelper!!.swap()
                     } else {
                         glHelper.updateTexImage()
                     }
@@ -218,6 +218,7 @@ class VideoDecodeActivity : AppCompatActivity() {
                 )
                 videoDecoder.start()
             }
+            delay(1500)  //let videodecoder start
 
             //start decode
             //status > 0:normal
@@ -242,7 +243,7 @@ class VideoDecodeActivity : AppCompatActivity() {
 //start encode
                         mEncodePresentTimeUs = mPresentationTimeUs1 - startTime
                         videoDecoder.releaseOutputBuffer(dequeueOutputBufferIndex, true)
-                        delay(50)
+//                        delay(50)
                         val bufferInfoEncode = MediaCodec.BufferInfo()
                         val outputBufferIndex =
                             videoEncoder.dequeueOutputBuffer(bufferInfoEncode, 1000000)
@@ -299,12 +300,15 @@ class VideoDecodeActivity : AppCompatActivity() {
                 }
             }//out while
 
-//                eglHandler.post {
-            //eglHelper.release()
-//                }
+            eglHandler.post {
+                eglHelper!!.release()
+            }
+            delay(1000)
 //                try {
-//                    videoDecoder.signalEndOfInputStream()
+//            videoDecoder.signalEndOfInputStream()
             videoEncoder.signalEndOfInputStream()
+            videoDecoder.stop()
+            videoEncoder.stop()
             videoDecoder.release()
             videoEncoder.release()
             videoExtractor.release()
@@ -337,10 +341,10 @@ class VideoDecodeActivity : AppCompatActivity() {
             mPresentationTimeUs1 = videoExtractor.sampleTime
             if (mPresentationTimeUs1 > endTime) {
                 //over
-                videoEncoder.queueInputBuffer(
-                    dequeueInputBufferIndex,
-                    0, 0, 0, MediaCodec.BUFFER_FLAG_END_OF_STREAM
-                )
+//                videoEncoder.queueInputBuffer(
+//                    dequeueInputBufferIndex,
+//                    0, 0, 0, MediaCodec.BUFFER_FLAG_END_OF_STREAM
+//                )
                 return 0
             }
             val size = videoExtractor.readSampleData(inputBuffer as ByteBuffer, 0)
@@ -353,10 +357,10 @@ class VideoDecodeActivity : AppCompatActivity() {
                 1
             } else {
                 //over
-                videoDecoder.queueInputBuffer(
-                    dequeueInputBufferIndex,
-                    0, 0, 0, MediaCodec.BUFFER_FLAG_END_OF_STREAM
-                )
+//                videoDecoder.queueInputBuffer(
+//                    dequeueInputBufferIndex,
+//                    0, 0, 0, MediaCodec.BUFFER_FLAG_END_OF_STREAM
+//                )
                 0
             }
         } else if (dequeueInputBufferIndex == MediaCodec.INFO_TRY_AGAIN_LATER) {
